@@ -1,0 +1,9 @@
+numpy
+dotenv
+datetime
+os
+time
+pathlib
+ccxt
+pandas
+quantstats
