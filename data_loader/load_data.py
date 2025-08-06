@@ -50,10 +50,10 @@ def loader(path, file_name, symbol, year, period, lim, x):
     # 2nd filtering
     df = df[df['timestamp'].dt.year == year]
 
-    # Create the parent folder if needed
-    path = Path.cwd() / path
+    # Create the parent folder relative to the script's directory
+    script_dir = Path(__file__).resolve().parent
+    path = script_dir / path
     path.mkdir(parents=True, exist_ok=True)
-
     full_path = path / (file_name + ".csv")
     df.to_csv(full_path, index=False)
 
