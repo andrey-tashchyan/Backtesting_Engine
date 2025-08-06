@@ -7,6 +7,8 @@ from algo import my_algo
 from data_loader.load_data import loader
 import quantstats as qs
 
+
+
 def main():
     
     #------------------------Setting the backtesting parameters
@@ -37,21 +39,27 @@ def main():
             case 1:                                 #looping each day
                 period = '5m'
                 lim = 288
+                x = 1
             case 2:                                 #looping each day
                 period = '15m'
                 lim = 96
+                x = 11
             case 3:                                 #looping each weeks
                 period = '1h'
                 lim = 168
+                x = 7
             case 4:                                 #looping each  2 weeks
                 period = '4h'
                 lim = 84
+                x = 14
             case 5:                                 #looping the year
                 period = '1d'
                 lim = 365
+                x = 366
             case 6:                                 #looping the year
                 period = '1w'
                 lim = 52
+                x = 366
     
     #Testing backtesting year
     if(year<2015 or year>2024):
@@ -82,7 +90,7 @@ def main():
         df = pd.read_csv(total_path)
     else:
         print("Data not found, proceeding to the download, this may take some time...")
-        df = loader(path, file_name, symbol, year, period, lim)
+        df = loader(path / "data_loader" / "data", file_name, symbol, year, period, lim, x)
     
     
 
@@ -109,17 +117,18 @@ def main():
     capital_invested = 0
     
     #Loop
+    entry_price = 0
     for i in range(sensitivity, len(df)):
         
         #Checking Liquidation (<5%)
-        if capital < initial_capital * 0.05:
+        if capital < initial_capital * 0.03:
             liquidation_time = df['timestamp'].iloc[i] if 'timestamp' in df.columns else datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"!!! Position Liquidated at {liquidation_time} !!!")
             return
         
         #Calling my_algo
         prices = df.iloc[max(0, i - window_size): i].reset_index(drop=True)
-        order, exposure = my_algo(prices, cur_pos, sensitivity) 
+        order, exposure = my_algo(prices, cur_pos, sensitivity, capital) ######################################
         close_price = df['close'].iloc[i]
 
         #Checking cases
@@ -165,11 +174,10 @@ def main():
     #Closing last position
     close_price = df['close'].iloc[len(df)-1]
     if cur_pos == 1:
-        profit = close_price - entry_price
+        profit = ((close_price - entry_price)/entry_price)*capital_invested
     if cur_pos == -1:
-        profit = entry_price - close_price
+        profit = ((entry_price - close_price)/close_price)*capital_invested
         capital += profit
-        capital_history.append(capital)
 
         #Relative PnL
         returns.append(profit)
